@@ -15,7 +15,7 @@ public class K3CVCEncrypt extends OutputStream {
 	this.out = out;
 	this.maxRounds = maxRounds+1;
 	this.prng = new Random(key);
-	this.buffer = new byte[IntStream.range(0, maxRounds+1)
+	this.buffer = new byte[IntStream.range(0, this.maxRounds+1)
 	       				.map(n -> (int)Math.pow(8, n))
 	       				.sum()];
     }
