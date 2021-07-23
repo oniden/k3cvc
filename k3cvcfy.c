@@ -5,7 +5,9 @@
 #include <libk3cvc/k3cvc.h>
 
 static const char* description = "K3C Viol Cipher encrypt/decrypt-ing tool.";
-static const char* epilogue    = "Data is read from STDIN and output to STDOUT.";
+static const char* epilogue    = 
+    "Data is read from STDIN and output to STDOUT.\n"
+    "PIN is a 48-bit integer to use as encryption key.";
 
 int main(int argc, const char** argv) {
     long pin;
@@ -20,25 +22,27 @@ int main(int argc, const char** argv) {
         OPT_END()
     };
 
-    argparse_init(&argp, argopts, &(const char*){"[-rd] PIN"}, 0);
+    argparse_init(&argp, argopts, (const char*[]){"[-rd] PIN", NULL}, 0);
     argparse_describe(&argp, description, epilogue);
     argc = argparse_parse(&argp, argc, argv);
 
     // parse the pin mandatorily.
-    if(argc < 1)     
-        argparse_usage(&argp), exit(EXIT_FAILURE);
-    else
+    if(argc < 1)
+	    argparse_usage(&argp), exit(EXIT_FAILURE);
+    else {
         pin = strtol(argv[0], NULL, 0);
-
+        if(errno != 0 || pin == 0)
+            fprintf(stderr, "fatal: invalid PIN syntax\n"), exit(EXIT_FAILURE);
+    }
 
     struct k3cvc_ctx ctx;
 
     ctx.buffer = malloc(k3cvc_init(&ctx, pin, max_rds));
-    
+
     // NOTE: conditionals 'breaking' denote possible corruption.
     // TODO: output to stderr if that happens.
 
-    if(!decode)       
+    if(!decode)
         for(;;) {
             char c = getc(stdin);
             if(c == EOF)
@@ -60,7 +64,7 @@ int main(int argc, const char** argv) {
 
             char c;
             if(k3cvc_decrypt(&ctx, &c) == EILSEQ)
-                return;
+                break;
 
             if(fputc(c, stdout) == EOF)
                 break;
