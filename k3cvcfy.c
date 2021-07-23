@@ -40,11 +40,12 @@ int main(int argc, const char** argv) {
 
     if(!decode)       
         for(;;) {
-            if((ctx.buffer[0] = getc(stdin)) == EOF)
+            char c = getc(stdin);
+            if(c == EOF)
                 break;
 
             size_t outoff, outlen;
-            k3cvc_encrypt(&ctx, &outoff, &outlen);
+            k3cvc_encrypt(&ctx, c, &outoff, &outlen);
 
             if(fwrite(ctx.buffer + outoff, 1, outlen, stdout) != outlen)
                 break;
